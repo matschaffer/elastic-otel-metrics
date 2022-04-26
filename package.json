@@ -4,6 +4,9 @@
   "private": true,
   "dependencies": {
     "@opentelemetry/api": "^1.0.4",
+    "@opentelemetry/exporter-collector": "^0.25.0",
+    "@opentelemetry/exporter-metrics-otlp-grpc": "^0.27.0",
+    "@opentelemetry/exporter-metrics-otlp-http": "^0.27.0",
     "@opentelemetry/exporter-prometheus": "^0.27.0",
     "@opentelemetry/sdk-metrics-base": "^0.27.0",
     "@testing-library/jest-dom": "^5.14.1",
@@ -24,10 +27,11 @@
   "scripts": {
     "start": "concurrently 'yarn:start-*'",
     "start-react": "react-scripts start",
-    "start-server": "npx nodemon src/server/index.ts",
+    "start-server": "nodemon src/server/index.ts",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "metricbeat": "npx "
   },
   "proxy": "http://localhost:4000",
   "eslintConfig": {
