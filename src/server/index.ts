@@ -7,9 +7,6 @@ import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc';
 
 diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
 
-// Create a new express application instance
-const app: express.Application = express();
-
 function getExporter(): MetricExporter {
   if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
     return new OTLPMetricExporter();
@@ -49,14 +46,35 @@ function getAsyncValue(): Promise<number> {
   });
 }
 
+// Create a new express application instance
+const app: express.Application = express();
+
 app.get('/', function (req, res) {
   res.send('Hello World!');
-});
-
-app.get('/_metrics', (req, res) => {
-  res.send('metrics');
 });
 
 app.listen(4000, function () {
   console.log(`Example app listening on port ${4000}!`);
 });
+
+const rules = 5000;
+
+const successes = meter.createCounter('rule_successes', {
+  description: 'Successful rule executions',
+});
+
+const failures = meter.createCounter('rule_failures', {
+  description: 'Failed rule executions',
+});
+
+successes.add(1, { rule: 'rule1' });
+
+setInterval(() => {
+  for (let i = 0; i < rules; i++) {
+    if (Math.random() > 0.5) {
+      successes.add(1, { rule: `rule_${i}` });
+    } else {
+      failures.add(1, { rule: `rule_${i}` });
+    }
+  }
+}, 10000);
