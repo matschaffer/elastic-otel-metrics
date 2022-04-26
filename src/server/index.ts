@@ -67,8 +67,6 @@ const failures = meter.createCounter('rule_failures', {
   description: 'Failed rule executions',
 });
 
-successes.add(1, { rule: 'rule1' });
-
 setInterval(() => {
   for (let i = 0; i < rules; i++) {
     if (Math.random() > 0.5) {
