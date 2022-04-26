@@ -75,4 +75,4 @@ setInterval(() => {
       failures.add(1, { rule: `rule_${i}` });
     }
   }
-}, 10000);
+}, 1000);
