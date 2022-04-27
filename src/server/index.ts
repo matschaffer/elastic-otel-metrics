@@ -4,12 +4,25 @@ import { MeterProvider } from '@opentelemetry/sdk-metrics-base';
 import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
 import { MetricExporter } from '@opentelemetry/sdk-metrics-base/build/src/export/types';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc';
+import { credentials } from '@grpc/grpc-js';
+import { OTLPExporterConfigNode } from '@opentelemetry/exporter-trace-otlp-grpc';
 
 diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
 
 function getExporter(): MetricExporter {
   if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
-    return new OTLPMetricExporter();
+    const endpoint = new URL(process.env.OTEL_EXPORTER_OTLP_ENDPOINT);
+    delete process.env.OTEL_EXPORTER_OTLP_ENDPOINT;
+
+    const collectorOptions: OTLPExporterConfigNode = {
+      url: `${endpoint.host}:${endpoint.port}`,
+    };
+
+    if (endpoint.protocol === 'https') {
+      collectorOptions.credentials = credentials.createSsl();
+    }
+
+    return new OTLPMetricExporter(collectorOptions);
   } else {
     const { endpoint, port } = PrometheusExporter.DEFAULT_OPTIONS;
     return new PrometheusExporter({}, () => {
