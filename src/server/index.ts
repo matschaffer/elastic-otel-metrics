@@ -2,52 +2,28 @@ import express from 'express';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 import { MeterProvider } from '@opentelemetry/sdk-metrics-base';
 import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
-import { MetricExporter } from '@opentelemetry/sdk-metrics-base/build/src/export/types';
-import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc';
-import { credentials } from '@grpc/grpc-js';
-import { OTLPExporterConfigNode } from '@opentelemetry/exporter-trace-otlp-grpc';
 
 diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
 
-function getExporter(): MetricExporter {
-  if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
-    const endpoint = new URL(process.env.OTEL_EXPORTER_OTLP_ENDPOINT);
-    delete process.env.OTEL_EXPORTER_OTLP_ENDPOINT;
+const prometheus = new PrometheusExporter({
+  host: '127.0.0.1'
+})
 
-    const collectorOptions: OTLPExporterConfigNode = {
-      url: `${endpoint.host}:${endpoint.port}`,
-    };
-
-    if (endpoint.protocol === 'https') {
-      collectorOptions.credentials = credentials.createSsl();
-    }
-
-    return new OTLPMetricExporter(collectorOptions);
-  } else {
-    const { endpoint, port } = PrometheusExporter.DEFAULT_OPTIONS;
-    return new PrometheusExporter({}, () => {
-      console.log(`prometheus scrape endpoint: http://localhost:${port}${endpoint}`);
-    });
-  }
-}
-
-const provider = new MeterProvider({
-  exporter: getExporter(),
-  interval: 2000,
-});
+const provider = new MeterProvider();
+provider.addMetricReader(prometheus)
 
 const meter = provider.getMeter('example-meter');
 
 meter.createObservableGauge(
   'cpu_core_usage',
-  {
-    description: 'Example of an async observable gauge with callback',
-  },
   async (observableResult) => {
     const value1 = await getAsyncValue();
     observableResult.observe(value1, { core: '1' });
     const value2 = await getAsyncValue();
     observableResult.observe(value2, { core: '2' });
+  },
+  {
+    description: 'Example of an async observable gauge with callback',
   }
 );
 
