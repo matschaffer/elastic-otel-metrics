@@ -19,7 +19,7 @@ Run `yarn start` to start the React builder (3000) and server (4000).
 ### Prometheus exporter + Metricbeat standalone
 
 - Create an elastic deployment on https://cloud.elastic.co/
-- Download a copy of metricbeat https://www.elastic.co/downloads/apm
+- Download a copy of metricbeat https://www.elastic.co/downloads/beats/metricbeat
 - Make a `metricbeat.cloud.yml` like this:
   ```yaml
   metricbeat.modules:
@@ -36,7 +36,7 @@ Run `yarn start` to start the React builder (3000) and server (4000).
   ```
 - Start with `./metricbeat -c metricbeat.cloud.yml -e`
 
-### OLTP exporter + APM server
+### OTLP exporter + APM server
 
 - Create an elastic deployment on https://cloud.elastic.co/
 - Download a copy of apm-server https://www.elastic.co/downloads/apm
@@ -48,7 +48,7 @@ Run `yarn start` to start the React builder (3000) and server (4000).
     password: "(PASSWORD)"
   ```
 - Start with `./apm-server -c apm-server.cloud.yml -e`
-- Run start the app with `OTEL_EXPORTER_OTLP_ENDPOINT="localhost:8200" yarn start`, the presence of `OTEL_EXPORTER_OTLP_ENDPOINT` will switch to OLTP exporter collection instead of prometheus.
+- Run start the app with `OTEL_EXPORTER_OTLP_ENDPOINT="localhost:8200" yarn start`, the presence of `OTEL_EXPORTER_OTLP_ENDPOINT` will switch to OTLP exporter collection instead of prometheus.
 
 ## GRPC debugging
 
