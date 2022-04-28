@@ -1,11 +1,11 @@
 import express from 'express';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 import { MeterProvider } from '@opentelemetry/sdk-metrics-base';
-import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
 import { MetricExporter } from '@opentelemetry/sdk-metrics-base/build/src/export/types';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc';
 import { Resource } from '@opentelemetry/resources';
 
+// import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
 // diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
 
 function getExporter(): MetricExporter {
