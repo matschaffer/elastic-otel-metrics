@@ -19,7 +19,7 @@ Run `yarn start` to start the React builder (3000) and server (4000).
 ### Prometheus exporter + Metricbeat standalone
 
 - Create an elastic deployment on https://cloud.elastic.co/
-- Download a copy of apm-server https://www.elastic.co/downloads/apm
+- Download a copy of metricbeat https://www.elastic.co/downloads/apm
 - Make a `metricbeat.cloud.yml` like this:
   ```yaml
   metricbeat.modules:
