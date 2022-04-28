@@ -4,25 +4,13 @@ import { MeterProvider } from '@opentelemetry/sdk-metrics-base';
 import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
 import { MetricExporter } from '@opentelemetry/sdk-metrics-base/build/src/export/types';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc';
-import { credentials } from '@grpc/grpc-js';
-import { OTLPExporterConfigNode } from '@opentelemetry/exporter-trace-otlp-grpc';
+import { Resource } from '@opentelemetry/resources';
 
-diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
+// diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
 
 function getExporter(): MetricExporter {
   if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
-    const endpoint = new URL(process.env.OTEL_EXPORTER_OTLP_ENDPOINT);
-    delete process.env.OTEL_EXPORTER_OTLP_ENDPOINT;
-
-    const collectorOptions: OTLPExporterConfigNode = {
-      url: `${endpoint.host}:${endpoint.port}`,
-    };
-
-    if (endpoint.protocol === 'https') {
-      collectorOptions.credentials = credentials.createSsl();
-    }
-
-    return new OTLPMetricExporter(collectorOptions);
+    return new OTLPMetricExporter();
   } else {
     const { endpoint, port } = PrometheusExporter.DEFAULT_OPTIONS;
     return new PrometheusExporter({}, () => {
@@ -34,6 +22,12 @@ function getExporter(): MetricExporter {
 const provider = new MeterProvider({
   exporter: getExporter(),
   interval: 2000,
+  resource: Resource.default().merge(
+    new Resource({
+      service: 'matschaffer',
+      version: 1,
+    })
+  ),
 });
 
 const meter = provider.getMeter('example-meter');
@@ -66,8 +60,10 @@ app.get('/', function (req, res) {
   res.send('Hello World!');
 });
 
-app.listen(4000, function () {
-  console.log(`Example app listening on port ${4000}!`);
+const port = process.env.PORT || 4000;
+
+app.listen(port, function () {
+  console.log(`Example app listening on port ${port}!`);
 });
 
 const rules = 5000;

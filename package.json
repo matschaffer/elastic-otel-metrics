@@ -8,6 +8,7 @@
     "@opentelemetry/exporter-metrics-otlp-grpc": "^0.27.0",
     "@opentelemetry/exporter-metrics-otlp-http": "^0.27.0",
     "@opentelemetry/exporter-prometheus": "^0.27.0",
+    "@opentelemetry/resources": "^1.2.0",
     "@opentelemetry/sdk-metrics-base": "^0.27.0",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^13.0.0",
