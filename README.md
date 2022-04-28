@@ -16,6 +16,26 @@ Run `yarn start` to start the React builder (3000) and server (4000).
 - Create a `.env` file with `FLEET_URL` and `FLEET_ENROLLMENT_TOKEN` set to the values provided in the add agent screen
 - Start the agent with `docker-compose run agent`
 
+### Prometheus exporter + Metricbeat standalone
+
+- Create an elastic deployment on https://cloud.elastic.co/
+- Download a copy of apm-server https://www.elastic.co/downloads/apm
+- Make a `metricbeat.cloud.yml` like this:
+  ```yaml
+  metricbeat.modules:
+  - module: prometheus
+    period: 10s
+    metricsets: ["collector"]
+    hosts: ["localhost:9464"]
+    metrics_path: /metrics
+
+  output.elasticsearch:
+    hosts: ["https://(ENDPOINT).es.(REGIONAL-TLD):9243"]
+    username: "elastic"
+    password: "(PASSWORD)"
+  ```
+- Start with `./metricbeat -c metricbeat.cloud.yml -e`
+
 ### OLTP exporter + APM server
 
 - Create an elastic deployment on https://cloud.elastic.co/
