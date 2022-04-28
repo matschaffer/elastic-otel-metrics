@@ -5,9 +5,11 @@ import { MetricExporter } from '@opentelemetry/sdk-metrics-base/build/src/export
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc';
 import { Resource } from '@opentelemetry/resources';
 
+// ---- If you need Otel diagnostic logs on stdout
 // import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
 // diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
 
+// ---- Set up the exporter based on OTEL_EXPORTER_OTLP_ENDPOINT
 function getExporter(): MetricExporter {
   if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
     return new OTLPMetricExporter();
@@ -32,6 +34,20 @@ const provider = new MeterProvider({
 
 const meter = provider.getMeter('example-meter');
 
+// Create a new express application instance (basically unused)
+const app: express.Application = express();
+
+app.get('/', function (req, res) {
+  res.send('Hello World!');
+});
+
+const port = process.env.PORT || 4000;
+
+app.listen(port, function () {
+  console.log(`Example app listening on port ${port}!`);
+});
+
+// ---- Two async "CPU" gauges
 meter.createObservableGauge(
   'cpu_core_usage',
   {
@@ -53,19 +69,7 @@ function getAsyncValue(): Promise<number> {
   });
 }
 
-// Create a new express application instance
-const app: express.Application = express();
-
-app.get('/', function (req, res) {
-  res.send('Hello World!');
-});
-
-const port = process.env.PORT || 4000;
-
-app.listen(port, function () {
-  console.log(`Example app listening on port ${port}!`);
-});
-
+// --- 5k rules x2 success/fail counters randomly incrementing every second
 const rules = 5000;
 
 const successes = meter.createCounter('rule_successes', {
