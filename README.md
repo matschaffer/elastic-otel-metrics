@@ -48,7 +48,7 @@ Run `yarn start` to start the React builder (3000) and server (4000).
     password: "(PASSWORD)"
   ```
 - Start with `./apm-server -c apm-server.cloud.yml -e`
-- Run start the app with `OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:8200" yarn start`, the presence of `OTEL_EXPORTER_OTLP_ENDPOINT` will switch to OTLP exporter collection instead of prometheus.
+- Run start the app with `OTEL_EXPORTER_OTLP_INSECURE=true OTEL_EXPORTER_OTLP_ENDPOINT="127.0.0.1:8200" yarn start`, the presence of `OTEL_EXPORTER_OTLP_ENDPOINT` will switch to OTLP exporter collection instead of prometheus.
 
 ## GRPC debugging
 
