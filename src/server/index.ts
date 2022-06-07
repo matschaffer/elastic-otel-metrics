@@ -1,10 +1,6 @@
 import express from 'express';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
-import {
-  MeterProvider,
-  MetricReader,
-  PeriodicExportingMetricReader,
-} from '@opentelemetry/sdk-metrics-base';
+import { MeterProvider, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics-base';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc';
 import { Resource } from '@opentelemetry/resources';
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
@@ -13,25 +9,28 @@ import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 // import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
 // diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
 
-// ---- Set up the exporter based on OTEL_EXPORTER_OTLP_ENDPOINT
-function getReader(): MetricReader {
-  if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
-    return new PeriodicExportingMetricReader({
-      exporter: new OTLPMetricExporter(),
-      exportIntervalMillis: 1000,
-    });
-  } else {
-    return new PrometheusExporter({
-      host: '127.0.0.1',
-    });
-  }
-}
 const provider = new MeterProvider({
   resource: new Resource({
     [SemanticResourceAttributes.SERVICE_NAME]: 'elastic-otel-metrics',
   }),
 });
-provider.addMetricReader(getReader());
+
+// ---- Set up prometheus exporter on localhost:9464/metrics (default port/path)
+provider.addMetricReader(
+  new PrometheusExporter({
+    host: '127.0.0.1',
+  })
+);
+
+// ---- Set up OTLP exporter based on OTEL_EXPORTER_OTLP_ENDPOINT
+if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
+  provider.addMetricReader(
+    new PeriodicExportingMetricReader({
+      exporter: new OTLPMetricExporter(),
+      exportIntervalMillis: 1000,
+    })
+  );
+}
 
 const meter = provider.getMeter('example-meter');
 
