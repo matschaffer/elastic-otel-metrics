@@ -1,36 +1,37 @@
 import express from 'express';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
-import { MeterProvider } from '@opentelemetry/sdk-metrics-base';
-import { MetricExporter } from '@opentelemetry/sdk-metrics-base/build/src/export/types';
+import {
+  MeterProvider,
+  MetricReader,
+  PeriodicExportingMetricReader,
+} from '@opentelemetry/sdk-metrics-base';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc';
 import { Resource } from '@opentelemetry/resources';
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
 
 // ---- If you need Otel diagnostic logs on stdout
 // import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
 // diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.DEBUG);
 
 // ---- Set up the exporter based on OTEL_EXPORTER_OTLP_ENDPOINT
-function getExporter(): MetricExporter {
+function getReader(): MetricReader {
   if (process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
-    return new OTLPMetricExporter();
+    return new PeriodicExportingMetricReader({
+      exporter: new OTLPMetricExporter(),
+      exportIntervalMillis: 1000,
+    });
   } else {
-    const { endpoint, port } = PrometheusExporter.DEFAULT_OPTIONS;
-    return new PrometheusExporter({}, () => {
-      console.log(`prometheus scrape endpoint: http://localhost:${port}${endpoint}`);
+    return new PrometheusExporter({
+      host: '127.0.0.1',
     });
   }
 }
-
 const provider = new MeterProvider({
-  exporter: getExporter(),
-  interval: 2000,
-  resource: Resource.default().merge(
-    new Resource({
-      service: 'matschaffer',
-      version: 1,
-    })
-  ),
+  resource: new Resource({
+    [SemanticResourceAttributes.SERVICE_NAME]: 'elastic-otel-metrics',
+  }),
 });
+provider.addMetricReader(getReader());
 
 const meter = provider.getMeter('example-meter');
 
@@ -48,18 +49,16 @@ app.listen(port, function () {
 });
 
 // ---- Two async "CPU" gauges
-meter.createObservableGauge(
-  'cpu_core_usage',
-  {
+meter
+  .createObservableGauge('cpu_core_usage', {
     description: 'Example of an async observable gauge with callback',
-  },
-  async (observableResult) => {
+  })
+  .addCallback(async (observableResult) => {
     const value1 = await getAsyncValue();
     observableResult.observe(value1, { core: '1' });
     const value2 = await getAsyncValue();
     observableResult.observe(value2, { core: '2' });
-  }
-);
+  });
 
 function getAsyncValue(): Promise<number> {
   return new Promise((resolve) => {
@@ -70,7 +69,7 @@ function getAsyncValue(): Promise<number> {
 }
 
 // --- 5k rules x2 success/fail counters randomly incrementing every second
-const rules = 5000;
+const rules = 1;
 
 const successes = meter.createCounter('rule_successes', {
   description: 'Successful rule executions',
